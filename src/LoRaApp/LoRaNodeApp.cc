@@ -536,7 +536,7 @@ void LoRaNodeApp::handleMessage(cMessage *msg) {
 
 
 void LoRaNodeApp::handleSelfMessage(cMessage *msg) {
-
+    // TODO: Implement sensor reading etc.
     // Only proceed to send a data packet if the 'mac' module in 'LoRaNic' is IDLE and the warmup period is due
     LoRaMac *lrmc = (LoRaMac *)getParentModule()->getSubmodule("LoRaNic")->getSubmodule("mac");
     if (lrmc->fsm.getState() == IDLE ) {
