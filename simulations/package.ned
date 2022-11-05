@@ -106,14 +106,14 @@ network LoRaMesh
             @display("p=83.664,150.192;is=s");
         }
         LoRaMedium: LoRaMedium {
-            @display("p=200,200");
+            @display("p=1400,-100");
         }
         networkServer: StandardHost {
             parameters:
                 @display("p=850,-100");
         }
         visualizer: <default(firstAvailableOrEmpty("IntegratedCanvasVisualizer"))> like IIntegratedVisualizer if typename != "" {
-            @display("p=580,125");
+            @display("p=1600,-100");
         }
         configurator: Ipv4NetworkConfigurator {
             parameters:

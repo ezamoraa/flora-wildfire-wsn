@@ -49,11 +49,13 @@ void LoRaNodeApp::initialize(int stage) {
     if (stage == INITSTAGE_LOCAL) {
         // Get this node's ID
         nodeId = getContainingNode(this)->getIndex();
-        std::pair<double, double> coordsValues = std::make_pair(-1, -1);
-        cModule *host = getContainingNode(this);
 
-        // Generate random location for nodes if circle deployment type
-        if (strcmp(host->par("deploymentType").stringValue(), "circle") == 0) {
+        cModule *host = getContainingNode(this);
+        std::pair<double, double> coordsValues = std::make_pair(-1, -1);
+
+
+       if (strcmp(host->par("deploymentType").stringValue(), "manual") == 0) {}
+       else if (strcmp(host->par("deploymentType").stringValue(), "circle") == 0) {
             coordsValues = generateUniformCircleCoordinates(
                     host->par("maxGatewayDistance").doubleValue(),
                     host->par("gatewayX").doubleValue(),
@@ -77,6 +79,7 @@ void LoRaNodeApp::initialize(int stage) {
         } else if (strcmp(host->par("deploymentType").stringValue(), "grid") == 0) {
             int minX = (int)host->par("minX").doubleValue();
             int sepX = (int)host->par("sepX").doubleValue();
+//            int sepX = (int)host->par("sepX").doubleValue() + nodeId*10;
             int minY = (int)host->par("minY").doubleValue();
             int sepY = (int)host->par("sepY").doubleValue();
             int cols = int(sqrt(numberOfNodes));
