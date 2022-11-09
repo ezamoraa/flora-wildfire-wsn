@@ -545,6 +545,13 @@ void LoRaNodeApp::handleSelfMessage(cMessage *msg) {
         simtime_t nextScheduleTime = 0;
         bool sendRouting = false;
         bool sendData = false;
+        // TODO: read sensors, with Yao's code
+        //add to a data log
+        //if ( sensor_readings > running_average + threshold ) {
+            //make a packet - previous data
+            //queue the packet - (send the packet?)
+            //reset afterwards
+        //}
 
         // Check if there are routing packets to send
         if ( routingPacketsDue && simTime() >= nextRoutingPacketTransmissionTime ) {
@@ -627,6 +634,9 @@ void LoRaNodeApp::handleSelfMessage(cMessage *msg) {
         // Schedule a self message to send routing or data packets. Add a
         // simulation time delta (i.e., a simtime-resolution unit) to avoid
         // timing conflicts in the LoRaMac layer
+        //
+        // TODO: Either use dataPacketsDue & everything that goes with it or come up with new
+        // Do we need to wait?
         if (routingPacketsDue || dataPacketsDue) {
             scheduleAt(nextScheduleTime + 10*simTimeResolution, selfPacket);
         }
@@ -1025,6 +1035,8 @@ void LoRaNodeApp::manageReceivedDataPacketToForward(cMessage *msg) {
     const auto & packet = pkt->peekAtFront<LoRaAppPacket>();
     auto dataPacket = staticPtrCast<LoRaAppPacket>(packet->dupShared());
 
+    // TODO: make sure our alert packets get forwarded, maybe it'd be best to take over
+
     // Check for too old packets with TTL <= 1
     if (packet->getTtl() <= 1) {
         bubble("This packet has reached TTL expiration!");
@@ -1166,6 +1178,8 @@ simtime_t LoRaNodeApp::sendDataPacket() {
         const char* addName = "Orig";
         fullName += addName;
         fullName += std::to_string(nodeId);
+
+        // TODO: refactor this to just what we need
 
         // Get the data from the first packet in the data buffer to send it
         dataPacket->setMsgType(LoRaPacketsToSend.front().getMsgType());
