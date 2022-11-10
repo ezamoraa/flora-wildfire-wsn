@@ -15,32 +15,38 @@
 
 #include "SensorNode.h"
 
-namespace flora {
+// namespace std {
 
-Define_Module(SensorNode);
+// Define_Module(SensorNode);
 //
-SensorNode::SensorNode() {
-    // TODO Auto-generated constructor stub
-}
-//
-//SensorNode::SensorNode(double inidata) {
-//    this->lastData = data;
-//}
-//
-SensorNode::~SensorNode() {
-    // TODO Auto-generated destructor stub
-}
+// SensorNode::SensorNode() {
+//     // TODO Auto-generated constructor stub
+// }
+// //
+// //SensorNode::SensorNode(double inidata) {
+// //    this->lastData = data;
+// //}
+// //
+// SensorNode::~SensorNode() {
+//     // TODO Auto-generated destructor stub
+// }
 
-int SensorNode :: getType(){
-    return type;
-}
+// int SensorNode :: getType(){
+//     return type;
+// }
 
-void SensorNode :: setLastData(double data){
-    this->lastData = data;
-}
+// void SensorNode :: setLastData(double data){
+//     this->lastData = data;
+// }
 
-double SensorNode :: getLastData(){
-    return lastData;
-}
+// double SensorNode :: getLastData(){
+//     return lastData;
+// }
 
-} /* namespace flora */
+// double SensorNode :: getRam(int a, int b){
+//     double randomNum;
+//     randomNum = ((rand () % (b - a + 100 )) / 100.0) + a/100.0;
+//     return randomNum;
+// }
+
+// } /* namespace flora */

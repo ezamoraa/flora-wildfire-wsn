@@ -15,43 +15,48 @@
 
 #ifndef LORAAPP_SENSOR_SENSORNODE_H_
 #define LORAAPP_SENSOR_SENSORNODE_H_
-#include <omnetpp.h>
+// #include <omnetpp.h>
+// #include <iostream>
+// #include <stdlib.h>
+// #include <time.h>
+// #include<iostream>
+// #include<stdlib.h>
 
-using namespace omnetpp;
-namespace flora {
+// using namespace omnetpp;
+using namespace std;
+// namespace std {
 
-class SensorNode : public cSimpleModule {
-protected:
-
-
-
-    double lastData;
-    int type;
-
-
+class SensorNode  {
 public:
-
-    enum sensorType{
-        TEMP = 1,
-        HUMI
-    };
-
-//    functions dont need to override
-    void setLastData(double data);
-    int  getType();
-    double getLastData();
-
-
-    SensorNode();
-    virtual ~SensorNode();
-
-//virtual functions
+    virtual void setLastData(double data) = 0;
+    virtual int  getType() = 0;
+    virtual double getLastData() = 0;
     virtual double getData() = 0;
     virtual double forceFire() = 0;
+    // enum sensorType{
+    //     TEMP = 1,
+    //     HUMI
+    // };
+
+//    functions dont need to override
+    // void setLastData(double data);
+    // int  getType();
+    // double getLastData();
+    // double getRam(int a, int b);
+
+
+    // virtual double getRam(int a, int b) = 0;
+
+
+    // SensorNode();
+    // virtual ~SensorNode();
+
+//virtual functions
+
 
 
 };
 
-} /* namespace flora */
+// } /* namespace flora */
 
 #endif /* LORAAPP_SENSOR_SENSORNODE_H_ */

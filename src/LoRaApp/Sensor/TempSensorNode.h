@@ -17,21 +17,24 @@
 #define LORAAPP_SENSOR_TEMPSENSORNODE_H_
 #include "SensorNode.h"
 
-namespace flora {
+// namespace std {
 
 class TempSensorNode : public SensorNode  {
+private:
+    double lastData;
+    int sensorType;
 public:
-    virtual void initialize(int stage) override;
+    // virtual void initialize(int stage) override;
     TempSensorNode();
     TempSensorNode(double inidata);
-    virtual ~TempSensorNode();
+    ~TempSensorNode();
     double getData() override;
     double forceFire() override;
-    double sendData();
-//    void initialize() override;
-//    void handleMessage(cMessage *msg) override;
+    void setLastData(double data) override;
+    int  getType() override;
+    double getLastData() override;
 };
 
-} /* namespace flora */
+// } /* namespace flora */
 
 #endif /* LORAAPP_SENSOR_TEMPSENSORNODE_H_ */

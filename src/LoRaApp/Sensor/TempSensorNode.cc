@@ -14,24 +14,22 @@
 // 
 
 #include "TempSensorNode.h"
+#include <iostream>
+#include <stdlib.h>
+#include <time.h>
 
-namespace flora {
+// namespace std {
 
-//Define_Module(TempSensorNode);
-//virtual void initialize(int stage) override;
-TempSensorNode:: initialize(){
-    sendData();
-}
 
 TempSensorNode::TempSensorNode() {
     // TODO Auto-generated constructor stub
-    this->type = 1;
-    this->lastData = uniform(15,20);
+    this->sensorType = 1;
+    this->lastData = ((rand() % 5000 / 1000.0) + 15.001);
 }
 
 TempSensorNode::TempSensorNode(double inidata) {
     // TODO Auto-generated constructor stub
-    this->type = 1;
+    this->sensorType = 1;
     this->lastData = inidata;
 }
 
@@ -41,18 +39,18 @@ TempSensorNode::~TempSensorNode() {
 
 double TempSensorNode :: getData(){
     if (lastData < -20){
-        lastData += uniform(1,5);
+        lastData += ((rand() % 5000 / 1000.0 ) + 1.001);
     }else if (lastData < 60){
-        if(uniform(0, 1) > 0.005 ){
-            lastData += uniform(-1.5,1.5);
+        if(rand() % 1000 / 1000.0 > 0.005 ){
+            lastData += ((rand() % 2000 / 1000.0 ) - 1.001);
         }else{
-            lastData += uniform(70,100);
+            lastData += ((rand() % 50000 / 1000.0) + 70.001);
         }
     }else{
-        if ( uniform(0, 1) > 0.3 && lastData < 800.0){
-            lastData += uniform(10,20);
+        if ( rand() % 1000 / 1000.0 > 0.3 && lastData < 800.0){
+            lastData += ((rand() % 10000 / 1000.0) + 10.001);
         }else{
-            lastData += uniform(-5,5);
+            lastData += ((rand() % 10000 / 1000.0) - 5.001);
         }
     }
 
@@ -61,25 +59,19 @@ double TempSensorNode :: getData(){
 
 double TempSensorNode :: forceFire(){
     if(lastData < 100){
-        lastData = uniform(100,120);
+        lastData = ((rand() % 20000 / 1000.0) + 100.001);
     }
     return lastData;
 }
 
-double TempSensorNode :: sendData(){
-    while(true){
-        double temp = getData();
-        cMessage *msg = new cMessage(temp);
-        send(msg,"tsout");
-    }
+int TempSensorNode :: getType(){
+    return sensorType;
 }
 
-//void TempSensorNode :: initialize(){
-//
-//}
-//
-//void TempSensorNode :: (cMessage *msg){
-//
-//}
+void TempSensorNode :: setLastData(double data){
+    this->lastData = data;
+}
 
-} /* namespace flora */
+double TempSensorNode :: getLastData(){
+    return lastData;
+}

@@ -14,20 +14,23 @@
 // 
 
 #include "HumiditySensorNode.h"
+#include <iostream>
+#include <stdlib.h>
+#include <time.h>
 
-namespace flora {
+// namespace flora {
 
 //Define_Module(HumiditySensorNode);
 
 HumiditySensorNode::HumiditySensorNode() {
     // TODO Auto-generated constructor stub
-    this->type = 2;
-    this->lastData = uniform(15,20);
+    this->sensorType = 2;
+    this->lastData = ((rand() % 5000 / 1000.0) + 15.001);
 }
 
 HumiditySensorNode::HumiditySensorNode(double inidata) {
     // TODO Auto-generated constructor stub
-    this->type = 2;
+    this->sensorType = 2;
     this->lastData = inidata;
 }
 
@@ -39,21 +42,21 @@ HumiditySensorNode::~HumiditySensorNode() {
 double HumiditySensorNode :: getData(){
     if (lastData < 10)
     {
-        lastData += uniform(0,2.0);
+        lastData += (rand() % 2000 / 1000.0 );
     }else if (lastData > 90)
     {
-        lastData -= uniform(0,2.0);
+        lastData -= (rand() % 2000 / 1000.0 );
     }else{
         if (lastData > 30)
         {
-            if (uniform(0,1.0) > 0.005)
+            if (rand() % 1000 / 1000.0 > 0.005)
             {
-                lastData +=( uniform(0,5.0) - 2.501);
+                lastData +=((rand() % 5000 / 1000.0) + 2.5);
             }else{
-                lastData +=( uniform(0,5.0) - 10.001);
+                lastData +=((rand() % 5000 / 1000.0) - 10.001);
             }
         }else{
-            lastData +=( uniform(0,5.0) - 2.501);
+            lastData +=((rand() % 5000 / 1000.0) - 2.5);
         }
 
 
@@ -65,56 +68,27 @@ double HumiditySensorNode :: getData(){
 
 double HumiditySensorNode :: forceFire(){
     if(lastData > 15){
-        lastData = uniform(2,15);
+        lastData = ((rand() % 20000 / 1000.0) + 100.001)                         ;
     }
     return lastData;
 }
 
 
-} /* namespace flora */
+int HumiditySensorNode :: getType(){
+    return sensorType;
+}
+
+void HumiditySensorNode :: setLastData(double data){
+    this->lastData = data;
+}
+
+double HumiditySensorNode :: getLastData(){
+    return lastData;
+}
 
 
-//Define_Module(TempSensorNode);
-//
-//TempSensorNode::TempSensorNode() {
-//    // TODO Auto-generated constructor stub
-//    this->type = 1;
-//    this->lastData = uniform(15,20);
-//}
-//
-//TempSensorNode::TempSensorNode(double inidata) {
-//    // TODO Auto-generated constructor stub
-//    this->type = 1;
-//    this->lastData = inidata;
-//}
-//
-//TempSensorNode::~TempSensorNode() {
-//    // TODO Auto-generated destructor stub
-//}
-//
-//double TempSensorNode :: getData(){
-//    if (lastData < -20){
-//        lastData += uniform(1,5);
-//    }else if (lastData < 60){
-//        if(uniform(0, 1) > 0.005 ){
-//            lastData += uniform(-1.5,1.5);
-//        }else{
-//            lastData += uniform(70,100);
-//        }
-//    }else{
-//        if ( uniform(0, 1) > 0.3 && lastData < 800.0){
-//            lastData += uniform(10,20);
-//        }else{
-//            lastData += uniform(-5,5);
-//        }
-//    }
-//
-//    return lastData;
-//}
-//
-//double TempSensorNode :: forceFire(){
-//    if(lastData < 100){
-//        lastData = uniform(100,120);
-//    }
-//    return lastData;
+ /* namespace flora */
+
+
+
 //}

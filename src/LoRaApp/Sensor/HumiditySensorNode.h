@@ -16,19 +16,25 @@
 #ifndef LORAAPP_SENSOR_HUMIDITYSENSORNODE_H_
 #define LORAAPP_SENSOR_HUMIDITYSENSORNODE_H_
 #include "SensorNode.h"
+// using namespace std;
 
-namespace flora {
 
 class HumiditySensorNode : public SensorNode {
+private:
+    double lastData;
+    int sensorType;
 public:
     HumiditySensorNode();
     HumiditySensorNode(double inidata);
-    virtual ~HumiditySensorNode();
+    ~HumiditySensorNode();
     double getData() override;
     double forceFire() override;
+    void setLastData(double data) override;
+    int  getType() override;
+    double getLastData() override;
 };
 
-} /* namespace flora */
+ /* namespace flora */
 
 #endif /* LORAAPP_SENSOR_HUMIDITYSENSORNODE_H_ */
 
