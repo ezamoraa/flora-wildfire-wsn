@@ -38,15 +38,21 @@ module LoRaNode
         double maxGatewayDistance = default(320.0);
         double gatewayX = default(320.0);
         double gatewayY = default(320.0);
+
+        string energySourceModule = default("");
+        string switchingTimes = default("ms 0 0 0 0 0 0 0 0 0 ");
+        *.energySourceModule = default(absPath(this.energySourceModule));
+
+
         @networkNode();
         *.interfaceTableModule = default(absPath(".interfaceTable"));
-        @display("bgb=297,313;i=device/accesspoint;is=vs");
+        @display("bgb=496,313;i=device/accesspoint;is=vs");
     submodules:
         interfaceTable: InterfaceTable {
-            @display("p=30,26");
+            @display("p=59,37");
         }
         mobility: StationaryMobilityMut {
-            @display("p=24,88");
+            @display("p=59,128");
         }
         LoRaNic: LoRaNic {
             @display("p=137,239");
@@ -55,12 +61,13 @@ module LoRaNode
             parameters:
                 @display("p=375,76,row,150");
         }
-        appEnergyConsumer[numApps] : <> like  IEnergyConsumer if typename != "" {
-            
+        appEnergyConsumer: <default("")> like IEnergyConsumer if typename != "" {
+
+            @display("p=393,219");
         }
     connections allowunconnected:
-        for i=0..numApps-1 {		
-        	app[i].socketOut --> LoRaNic.upperLayerIn;
-        	LoRaNic.upperLayerOut --> app[i].socketIn;
+        for i=0..numApps-1 {
+            app[i].socketOut --> LoRaNic.upperLayerIn;
+            LoRaNic.upperLayerOut --> app[i].socketIn;
         }
 }
