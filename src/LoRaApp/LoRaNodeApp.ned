@@ -16,11 +16,17 @@
 package flora.LoRaApp;
 
 import inet.applications.contract.IApp;
+import inet.physicallayer.wireless.common.contract.packetlevel.ILoRaNodeApp;
+import inet.networklayer.common.NetworkInterface;
 
+import inet.power.storage.IdealEpEnergyStorage;
+import inet.power.contract.IEnergyConsumer;
+import flora.LoRaApp.LoRaMCU;
+import flora.LoRaEnergyModules.LoRaAppEnergyConsumer;
 //
 // TODO auto-generated module
 //
-simple LoRaNodeApp like IApp
+module LoRaNodeApp  like IApp
 {
     parameters:
         @signal[LoRa_AppPacketSent](type=long); // optional
@@ -35,9 +41,9 @@ simple LoRaNodeApp like IApp
 
         volatile double timeToFirstRoutingPacket @unit(s) = default(300s);
         string timeToNextRoutingPacketDist = default("uniform");
-		volatile double timeToNextRoutingPacketMin @unit(s) = default(0s);
-		volatile double timeToNextRoutingPacketMax @unit(s) = default(600s);
-		volatile double timeToNextRoutingPacketAvg @unit(s) = default(300s);
+        volatile double timeToNextRoutingPacketMin @unit(s) = default(0s);
+        volatile double timeToNextRoutingPacketMax @unit(s) = default(600s);
+        volatile double timeToNextRoutingPacketAvg @unit(s) = default(300s);
 
         double initialLoRaTP @unit(dBm) = default(14dBm);
         double initialLoRaCF @unit(Hz) = default(868MHz);
@@ -77,7 +83,39 @@ simple LoRaNodeApp like IApp
         volatile double stopRoutingAfterDataDone @unit(s) = default(3600s);
         int forwardedPacketVectorSize = default(10);
         int packetsToForwardMaxVectorSize = default(0);
+
+        string energySourceModule = default("");           // module path of the energy source module which provides energy to the radio
+
+        string initialAppMode @enum("sleep","run") = default("sleep");
+        string switchingTimes = default("ms 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"); // time parameters to switch between radio modes
+
+        *.energySourceModule = default(absPath(this.energySourceModule));
+
+        @signal[appModeChanged](type=long);
+        @statistic[appMode](title="App mode"; source=appModeChanged; record=count,vector; interpolationmode=sample-hold);
+
+        @display("bgb=314,348");
+        
     gates:
         input socketIn @labels(LoRaAppPacket/up);
         output socketOut @labels(LoRaAppPacket/down);
+
+
+    submodules:
+        MCU: LoRaMCU {
+                @display("p=64,158");
+        }
+
+        IdealEpEnergyStorage: IdealEpEnergyStorage {
+            @display("p=240,62");
+        }
+
+        energyConsumer: <default("")> like IEnergyConsumer if typename != "" {
+            parameters:
+                @display("p=240,220");
+        }
+	connections:
+	    socketIn --> { @display("m=n"); } --> MCU.mcuin;
+	    MCU.mcuout --> { @display("m=n"); } --> socketOut;
+
 }

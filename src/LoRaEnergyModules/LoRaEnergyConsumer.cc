@@ -16,6 +16,8 @@
 #include "LoRaEnergyConsumer.h"
 
 #include "inet/physicallayer/wireless/common/contract/packetlevel/IRadio.h"
+#include "inet/physicallayer/wireless/common/contract/packetlevel/ILoRaNodeApp.h"
+
 #include "LoRaPhy/LoRaTransmitter.h"
 namespace flora {
 
@@ -26,9 +28,11 @@ Define_Module(LoRaEnergyConsumer);
 void LoRaEnergyConsumer::initialize(int stage)
 {
     cSimpleModule::initialize(stage);
+
     if (stage == INITSTAGE_LOCAL) {
         if (!readConfigurationFile())
             throw cRuntimeError("LoRaEnergyConsumer: error in reading the input configuration file");
+
         standbySupplyCurrent = 0;
         sleepSupplyCurrent = 0;
         sleepPowerConsumption = mW(supplyVoltage*sleepSupplyCurrent);
@@ -41,6 +45,7 @@ void LoRaEnergyConsumer::initialize(int stage)
         offPowerConsumption = W(par("offPowerConsumption"));
         switchingPowerConsumption = W(par("switchingPowerConsumption"));
 
+
         //Setting to zero, values are passed to energystorage based on tx power of current packet in getPowerConsumption()
         transmitterTransmittingPowerConsumption = W(0);
         transmitterTransmittingPreamblePowerConsumption = W(0);
@@ -48,6 +53,7 @@ void LoRaEnergyConsumer::initialize(int stage)
         transmitterTransmittingDataPowerConsumption = W(0);
 
         cModule *radioModule = getParentModule();
+
         radioModule->subscribe(IRadio::radioModeChangedSignal, this);
         radioModule->subscribe(IRadio::receptionStateChangedSignal, this);
         radioModule->subscribe(IRadio::transmissionStateChangedSignal, this);
@@ -56,6 +62,8 @@ void LoRaEnergyConsumer::initialize(int stage)
         //radioModule->subscribe(EpEnergyStorageBase::residualEnergyCapacityChangedSignal, this);
         //radioModule->subscribe(IdealEpEnergyStorage::residualEnergyCapacityChangedSignal, this);
         radio = check_and_cast<IRadio *>(radioModule);
+
+        cModule *appmodule = getParentModule();
 
         energySource.reference(this, "energySourceModule", true);
 
@@ -156,8 +164,7 @@ void LoRaEnergyConsumer::receiveSignal(cComponent *source, simsignal_t signal, i
             lastPowerConsumption = powerConsumption;
         //}
     }
-    else
-        throw cRuntimeError("Unknown signal");
+
 }
 
 W LoRaEnergyConsumer::getPowerConsumption() const
@@ -183,43 +190,24 @@ W LoRaEnergyConsumer::getPowerConsumption() const
         powerConsumption += mW(supplyVoltage*idleSupplyCurrent);
     }
 
-//    if (radioMode == IRadio::RADIO_MODE_RECEIVER || radioMode == IRadio::RADIO_MODE_TRANSCEIVER) {
-//        if (receptionState == IRadio::RECEPTION_STATE_IDLE)
-//            powerConsumption += receiverIdlePowerConsumption;
-//        else if (receptionState == IRadio::RECEPTION_STATE_RECEIVING) {
-//            auto part = radio->getReceivedSignalPart();
-//            if (part == IRadioSignal::SIGNAL_PART_NONE)
-//                ;
-//            else if (radioMode == IRadio::RADIO_MODE_RECEIVER || part == IRadioSignal::SIGNAL_PART_WHOLE || part == IRadioSignal::SIGNAL_PART_PREAMBLE || part == IRadioSignal::SIGNAL_PART_HEADER || part == IRadioSignal::SIGNAL_PART_DATA )
-//                powerConsumption += receiverReceivingPowerConsumption;
-//            else
-//                throw cRuntimeError("Unknown received signal part");
-//        }
-//        else if (receptionState == IRadio::RECEPTION_STATE_BUSY || radioMode == IRadio::RADIO_MODE_RECEIVER)
-//            powerConsumption += receiverBusyPowerConsumption;
-//        else if (receptionState != IRadio::RECEPTION_STATE_UNDEFINED)
-//            throw cRuntimeError("Unknown radio reception state");
-//    }
-//
-//    if (radioMode == IRadio::RADIO_MODE_TRANSMITTER || radioMode == IRadio::RADIO_MODE_TRANSCEIVER) {
-//        if (transmissionState == IRadio::TRANSMISSION_STATE_IDLE)
-//            powerConsumption += transmitterIdlePowerConsumption;
-//        else if (transmissionState == IRadio::TRANSMISSION_STATE_TRANSMITTING) {
-//            LoRaRadio *radio = check_and_cast<LoRaRadio *>(getParentModule());
-//            auto part = radio->getTransmittedSignalPart();
-//            if (part == IRadioSignal::SIGNAL_PART_NONE)
-//                ;
-//            else if (part == IRadioSignal::SIGNAL_PART_WHOLE || part == IRadioSignal::SIGNAL_PART_PREAMBLE || part == IRadioSignal::SIGNAL_PART_HEADER || part == IRadioSignal::SIGNAL_PART_DATA)
-//            {
-//                auto current = transmitterTransmittingSupplyCurrent.find(radio->loRaTP);
-//                powerConsumption += mW(supplyVoltage*current->second);
-//            }
-//            else
-//                throw cRuntimeError("Unknown transmitted signal part");
-//        }
-//        else if (transmissionState != IRadio::TRANSMISSION_STATE_UNDEFINED)
-//            throw cRuntimeError("Unknown radio transmission state");
-//    }
+
     return powerConsumption;
 }
+
+
+/*W LoRaEnergyConsumer::getNodePowerConsumption() const
+{
+    powerConsumption = getRadioPowerConsumption() + getAppPowerConsumption();
+    emit(powerConsumptionChangedSignal, powerConsumption.get());
+
+               simtime_t currentSimulationTime = simTime();
+               //if (currentSimulationTime != lastEnergyBalanceUpdate) {
+                   energyBalance += s((currentSimulationTime - lastEnergyBalanceUpdate).dbl()) * (lastPowerConsumption);
+                   totalEnergyConsumed = (energyBalance.get());
+                   lastEnergyBalanceUpdate = currentSimulationTime;
+                   lastPowerConsumption = powerConsumption;
+               //}
+
+    return powerConsumption;
+}*/
 }
