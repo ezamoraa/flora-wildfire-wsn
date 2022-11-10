@@ -68,22 +68,22 @@ network LoRaMotoNetworkTest
         @display("bgb=2500,2500;bgl=2");
     submodules:
         N[numberOfNodes]: LoRaNode {
-            @display("p=83.664,233.856;is=n");
+            @display("p=801.28,115.184006;is=n");
         }
         loRaGW[numberOfGateways]: LoRaGW {
-            @display("p=100,100;is=n");
+            @display("p=2423.872,95.152;is=n");
         }
         LoRaMedium: LoRaMedium {
-            @display("p=20,35;is=l;i=misc/sun");
+            @display("p=1231.968,115.184006;is=l;i=misc/sun");
         }
         configurator: Ipv4NetworkConfigurator {
             parameters:
                 assignDisjunctSubnetAddresses = false;
-                @display("p=207.64801,88.704");
+                @display("p=2088.336,95.152");
         }
         networkServer: StandardHost {
             parameters:
-                @display("p=208.24002,27.216002");
+                @display("p=1697.712,95.152");
         }
     connections:
 }
@@ -100,34 +100,34 @@ network LoRaMesh
         @display("bgb=2500,2500;bgl=2");
     submodules:
         loRaNodes[numberOfNodes]: LoRaNode {
-            @display("p=83.664,233.856;is=n");
+            @display("p=831.328,580.92804;is=n");
         }
         loRaGW[numberOfGateways]: LoRaGW {
-            @display("p=83.664,150.192;is=s");
+            @display("p=610.976,-55.088;is=s");
         }
         LoRaMedium: LoRaMedium {
-            @display("p=200,200");
+            @display("p=2398.832,-110.176");
         }
         networkServer: StandardHost {
             parameters:
-                @display("p=850,-100");
+                @display("p=2023.232,-105.168");
         }
         visualizer: <default(firstAvailableOrEmpty("IntegratedCanvasVisualizer"))> like IIntegratedVisualizer if typename != "" {
-            @display("p=580,125");
+            @display("p=2383.808,100.16");
         }
         configurator: Ipv4NetworkConfigurator {
             parameters:
                 assignDisjunctSubnetAddresses = false;
-                @display("p=1200,-100");
+                @display("p=2383.808,505.808");
         }
         internetCloud: InternetCloud {
-            @display("p=300,-100");
+            @display("p=1252,-105.168");
         }
         gwRouter[numberOfGateways]: Router {
-            @display("p=50,-100");
+            @display("p=871.392,-105.168");
         }
         nsRouter: Router {
-            @display("p=550,-100");
+            @display("p=1647.6321,-105.168");
         }
     connections:
         networkServer.ethg++ <--> Eth1G <--> nsRouter.ethg++;

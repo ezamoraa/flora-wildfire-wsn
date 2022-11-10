@@ -38,6 +38,7 @@ simsignal_t LoRaRadio::packetErrorRateSignal = cComponent::registerSignal("packe
 simsignal_t LoRaRadio::bitErrorRateSignal = cComponent::registerSignal("bitErrorRate");
 simsignal_t LoRaRadio::symbolErrorRateSignal = cComponent::registerSignal("symbolErrorRate");
 simsignal_t LoRaRadio::droppedPacket = cComponent::registerSignal("droppedPacket");
+//simsignal_t LoRaRadio::loRaSF = cComponent::registerSignal("loRaSF");
 
 
 void LoRaRadio::initialize(int stage)
@@ -430,6 +431,20 @@ void LoRaRadio::endReception(cMessage *timer)
             sendUp(macFrame);
         else {
             emit(LoRaRadio::droppedPacket, 0);
+
+            EV << "failed to send packet with SF: " << loRaSF  << endl;
+
+            //At 140m range the data packets succeed to transmit with
+            //initial SF set to 9 or greater. Increasing SF locally at
+            //the node does not effect the simulation result and packets
+            //still get dropped at SF 9+. The plan is to figure out how to
+            //propagate the SF increase decision through the medium,
+            //such that the mesh network has the ability influence SF
+            //parameter of neighboring nodes if a data packet is dropped.
+            loRaSF = loRaSF +1;
+            if (loRaSF > 12)
+                loRaSF = 12;
+//            emit(LoRaRadio::loRaSF,LoRaRadio::loRaSF + 1);
             delete macFrame;
         }
         receptionTimer = nullptr;

@@ -428,6 +428,8 @@ void LoRaMac::receiveSignal(cComponent *source, simsignal_t signalID, intval_t v
     else if (signalID == LoRaRadio::droppedPacket) {
         // radio->setRadioMode(IRadio::RADIO_MODE_SLEEP);
         radio->setRadioMode(IRadio::RADIO_MODE_RECEIVER);
+        EV << "packet drop detected in mac " << endl;
+//        radio->loRaSF = loRaSF +1 ;
         handleWithFsm(droppedPacket);
     }
     else if (signalID == IRadio::transmissionStateChangedSignal) {

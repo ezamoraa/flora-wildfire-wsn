@@ -43,8 +43,8 @@ public:
    * An identifier which is globally unique for the whole lifetime of the
    * simulation among all radios.
    */
-//  double currentTxPower;
-  //LoRa physical layer parameters
+  //  double currentTxPower;
+  // LoRa physical layer parameters
   double loRaTP;
   units::values::Hz loRaCF;
   int loRaSF;

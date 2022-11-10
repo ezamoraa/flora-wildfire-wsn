@@ -52,8 +52,9 @@ void LoRaNodeApp::initialize(int stage) {
         std::pair<double, double> coordsValues = std::make_pair(-1, -1);
         cModule *host = getContainingNode(this);
 
+        if (strcmp(host->par("deploymentType").stringValue(), "manual") == 0) {}
         // Generate random location for nodes if circle deployment type
-        if (strcmp(host->par("deploymentType").stringValue(), "circle") == 0) {
+        else if (strcmp(host->par("deploymentType").stringValue(), "circle") == 0) {
             coordsValues = generateUniformCircleCoordinates(
                     host->par("maxGatewayDistance").doubleValue(),
                     host->par("gatewayX").doubleValue(),
@@ -1517,7 +1518,7 @@ void LoRaNodeApp::generateDataPackets() {
 void LoRaNodeApp::generateDataPackets2() {
 
     if (nodeId == 0) {
-        int destination = 2;
+        int destination = 3;
 
         for (int k = 0; k < numberOfPacketsPerDestination; k++) {
                 auto dataPacket = makeShared<LoRaAppPacket>();
