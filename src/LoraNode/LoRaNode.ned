@@ -19,8 +19,6 @@ import inet.mobility.static.StationaryMobility;
 import inet.networklayer.common.InterfaceTable;
 import inet.applications.contract.IApp;
 import flora.LoRa.LoRaNic;
-import inet.power.contract.IEnergyConsumer;
-
 
 
 module LoRaNode
@@ -54,9 +52,6 @@ module LoRaNode
         app[numApps]: <> like IApp {
             parameters:
                 @display("p=375,76,row,150");
-        }
-        appEnergyConsumer[numApps] : <> like  IEnergyConsumer if typename != "" {
-            
         }
     connections allowunconnected:
         for i=0..numApps-1 {		

@@ -1,25 +1,24 @@
-#include "LoRaAppEnergyConsumer.h"
+#include "LoRaEnergyConsumer.h"
 
 #include "../LoRaApp/LoRaNodeApp.h"
-
 namespace flora {
 
 using namespace inet::power;
 
 Define_Module(LoRaAppEnergyConsumer);
 
-void LoRaAppEnergyConsumer::initialize(int stage)
+void LoRaEnergyConsumer::initialize(int stage)
 {
     cSimpleModule::initialize(stage);
     if (stage == INITSTAGE_LOCAL) {
         if (!readConfigurationFile())
-            throw cRuntimeError("LoRaAppEnergyConsumer: error in reading the input configuration file");
+            throw cRuntimeError("LoRaEnergyConsumer: error in reading the input configuration file");
         sleepAppPowerConsumption = W(par("sleepAppPowerConsumption"));
         runAppPowerConsumption = W(par("runAppPowerConsumption"));
         switchingAppPowerConsumption = W(par("switchingAppPowerConsumption"));
 
         cModule *appModule = getParentModule();
-        appModule->subscribe(flora::LoRaNodeApp::appModeChangedSignal, this);
+        appModule->subscribe(flora::physicLoRaNodeAppallayer::appModeChangedSignal, this);
         app = check_and_cast<ILoRaNodeApp *>(appModule);
 
         energySource.reference(this, "energySourceModule", true);
@@ -32,12 +31,12 @@ void LoRaAppEnergyConsumer::initialize(int stage)
 
 }
 
-void LoRaAppEnergyConsumer::finish()
+void LoRaEnergyConsumer::finish()
 {
     recordScalar("totalEnergyConsumed", double(totalEnergyConsumed));
 }
 
-bool LoRaAppEnergyConsumer::readConfigurationFile()
+bool LoRaEnergyConsumer::readConfigurationFile()
 {
     cXMLElement *xmlConfig = par("configFile").xmlValue();
     if (xmlConfig == nullptr)
@@ -103,7 +102,7 @@ bool LoRaAppEnergyConsumer::readConfigurationFile()
     return true;
 }
 
-void LoRaAppEnergyConsumer::receiveSignal(cComponent *source, simsignal_t signal, intval_t value, cObject *details)
+void LoRaEnergyConsumer::receiveSignal(cComponent *source, simsignal_t signal, intval_t value, cObject *details)
 {
     if (signal == ILoRaNodeApp::appModeChangedSignal)
        {
@@ -123,7 +122,7 @@ void LoRaAppEnergyConsumer::receiveSignal(cComponent *source, simsignal_t signal
 
 }
 
-W LoRaAppEnergyConsumer::getPowerConsumption() const
+W LoRaEnergyConsumer::getAppPowerConsumption() const
 {
     ILoRaNodeApp::AppMode appMode = app->getAppMode();
     if (appMode == ILoRaNodeApp::APP_MODE_SLEEP)
