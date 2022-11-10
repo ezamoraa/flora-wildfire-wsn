@@ -27,6 +27,7 @@
     "**/.*/**",
     "**/.vscode",
     "**/.vscode/**"
+<<<<<<< Updated upstream
   ],
   "C_Cpp.errorSquiggles": "Disabled",
   "files.associations": {
@@ -70,4 +71,7 @@
     "streambuf": "cpp",
     "typeinfo": "cpp"
   }
+=======
+  ]
+>>>>>>> Stashed changes
 }
