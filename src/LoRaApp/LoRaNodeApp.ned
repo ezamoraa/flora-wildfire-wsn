@@ -16,9 +16,7 @@
 package flora.LoRaApp;
 
 import inet.applications.contract.IApp;
-import inet.physicallayer.wireless.common.contract.packetlevel.ILoRaNodeApp;
 import inet.networklayer.common.NetworkInterface;
-
 import inet.power.storage.IdealEpEnergyStorage;
 import inet.power.contract.IEnergyConsumer;
 import flora.LoRaApp.LoRaMCU;
@@ -102,20 +100,20 @@ module LoRaNodeApp  like IApp
 
 
     submodules:
-        MCU: LoRaMCU {
-                @display("p=64,158");
-        }
-
-        IdealEpEnergyStorage: IdealEpEnergyStorage {
-            @display("p=240,62");
-        }
-
-        energyConsumer: <default("")> like IEnergyConsumer if typename != "" {
-            parameters:
-                @display("p=240,220");
-        }
+//        MCU: LoRaMCU {
+//                @display("p=64,158");
+//        }
+//
+//        IdealEpEnergyStorage: IdealEpEnergyStorage {
+//            @display("p=240,62");
+//        }
+//
+//        energyConsumer: <default("")> like IEnergyConsumer if typename != "" {
+//            parameters:
+//                @display("p=240,220");
+//        }
 	connections:
-	    socketIn --> { @display("m=n"); } --> MCU.mcuin;
-	    MCU.mcuout --> { @display("m=n"); } --> socketOut;
+//	    socketIn --> { @display("m=n"); } --> MCU.mcuin;
+//	    MCU.mcuout --> { @display("m=n"); } --> socketOut;
 
 }

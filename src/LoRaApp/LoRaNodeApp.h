@@ -311,6 +311,7 @@ class LoRaNodeApp : public cSimpleModule, public ILifecycle
             APP_MODE_SWITCHING // this radio mode must be the very last
         };
 
+
     protected:
         static cEnum *appModeEnum;
 

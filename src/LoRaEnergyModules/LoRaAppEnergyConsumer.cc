@@ -1,7 +1,6 @@
 #include "LoRaEnergyConsumer.h"
 
-#include "inet/physicallayer/wireless/common/contract/packetlevel/ILoRaNodeApp.h"
-
+#include "../LoRaApp/LoRaNodeApp.h"
 namespace flora {
 
 using namespace inet::power;
@@ -19,7 +18,7 @@ void LoRaEnergyConsumer::initialize(int stage)
         switchingAppPowerConsumption = W(par("switchingAppPowerConsumption"));
 
         cModule *appModule = getParentModule();
-        appModule->subscribe(inet::physicallayer::ILoRaNodeApp::appModeChangedSignal, this);
+        appModule->subscribe(flora::physicLoRaNodeAppallayer::appModeChangedSignal, this);
         app = check_and_cast<ILoRaNodeApp *>(appModule);
 
         energySource.reference(this, "energySourceModule", true);
