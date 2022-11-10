@@ -196,7 +196,9 @@ m LoRaMediumCache::computeMaxRange(W maxTransmissionPower, W minReceptionPower) 
     // TODO: this is NaN by default
     Hz carrierFrequency = Hz(par("carrierFrequency"));
     double loss = unit(minReceptionPower / maxTransmissionPower).get() / maxAntennaGain / maxAntennaGain;
-    return radioMedium->getPathLoss()->computeRange(radioMedium->getPropagation()->getPropagationSpeed(), carrierFrequency, loss);
+    m com_max_range = radioMedium->getPathLoss()->computeRange(radioMedium->getPropagation()->getPropagationSpeed(), carrierFrequency, loss);
+    EV << "Max range: " << com_max_range << endl;
+    return com_max_range;
 }
 
 m LoRaMediumCache::computeMaxInterferenceRange() const
@@ -248,13 +250,13 @@ m LoRaMediumCache::getMaxInterferenceRange(const IRadio* radio) const
 
 m LoRaMediumCache::getMaxCommunicationRange(const IRadio* radio) const
 {
-    m range;
+    m com_range;
 //    if (strcmp(radioMedium->par("pathLossType").stringValue(), "LoRaLogNormalShadowing") == 0) {
         LoRaLogNormalShadowing *loraLogNormalShadowing;
         loraLogNormalShadowing = check_and_cast<LoRaLogNormalShadowing *>(radioMedium->getSubmodule("pathLoss"));
-        range = loraLogNormalShadowing->computeRange(maxTransmissionPower);
-        EV << "max com range of node " << radio->getId()<< " : " << range << endl;
-        return(range);
+        com_range = loraLogNormalShadowing->computeRange(maxTransmissionPower);
+        EV << "max com range of node " << radio->getId()<< " : " << com_range << endl;
+        return(com_range);
 //    }
 //    throw cRuntimeError("Unknown pathLossType. Only LoRaLogNormalShadowing is supported by the LoRaMediumCache.");
 }

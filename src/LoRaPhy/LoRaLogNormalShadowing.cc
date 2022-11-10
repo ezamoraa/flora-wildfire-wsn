@@ -30,7 +30,6 @@ void LoRaLogNormalShadowing::initialize(int stage)
     if (stage == INITSTAGE_LOCAL) {
         sigma = par("sigma");
         gamma = par("gamma");
-//        gamma = 2;
         d0 = m(par("d0"));
     }
 }

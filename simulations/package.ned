@@ -94,10 +94,10 @@ network LoRaMesh
     parameters:
         int numberOfNodes = default(1);
         int numberOfGateways = default(1);
-        int networkSizeX = default(1400);
+        int networkSizeX = default(3000);
         int networkSizeY = default(2500);
-        //@display("bgb=1400,2500;bgi=background/coquimbo-02;bgl=2");
-        @display("bgb=2500,2500;bgl=2");
+//        @display("bgb=1400,2500;bgi=background/coquimbo-02;bgl=2");
+        @display("bgb=3000,2500;bgl=2");
     submodules:
         loRaNodes[numberOfNodes]: LoRaNode {
             @display("p=831.328,580.92804;is=n");
@@ -106,28 +106,28 @@ network LoRaMesh
             @display("p=610.976,-55.088;is=s");
         }
         LoRaMedium: LoRaMedium {
-            @display("p=2398.832,-110.176");
+            @display("p=-200,-200");
         }
         networkServer: StandardHost {
             parameters:
-                @display("p=2023.232,-105.168");
+                @display("p=2100,-200");
         }
         visualizer: <default(firstAvailableOrEmpty("IntegratedCanvasVisualizer"))> like IIntegratedVisualizer if typename != "" {
-            @display("p=2383.808,100.16");
+            @display("p=2500,-200");
         }
         configurator: Ipv4NetworkConfigurator {
             parameters:
                 assignDisjunctSubnetAddresses = false;
-                @display("p=2383.808,505.808");
+                @display("p=2900,-200");
         }
         internetCloud: InternetCloud {
-            @display("p=1252,-105.168");
+            @display("p=1300,-200");
         }
         gwRouter[numberOfGateways]: Router {
-            @display("p=871.392,-105.168");
+            @display("p=900,-200");
         }
         nsRouter: Router {
-            @display("p=1647.6321,-105.168");
+            @display("p=1700,-200");
         }
     connections:
         networkServer.ethg++ <--> Eth1G <--> nsRouter.ethg++;

@@ -1166,9 +1166,17 @@ simtime_t LoRaNodeApp::sendDataPacket() {
         bubble("Forwarding a packet!");
         localData = false;
 
-        const char* addName = "Fwd";
+        std::string addName = "Node ";
         fullName += addName;
         fullName += std::to_string(nodeId);
+        addName = " fwd from ";
+        fullName += addName;
+        addName = std::to_string(LoRaPacketsToForward.front().getSource());
+        fullName += addName;
+        addName = " to ";
+        fullName += addName;
+        addName = std::to_string(LoRaPacketsToForward.front().getDestination());
+        fullName += addName;
 
         switch (routingMetric) {
             case NO_FORWARDING:
@@ -1191,7 +1199,7 @@ simtime_t LoRaNodeApp::sendDataPacket() {
             default:
                 // TODO: Investigate while loop but single transmit
                 while (LoRaPacketsToForward.size() > 0) {
-                    addName = "FWD-";
+                    addName = " with routing metric : ";
                     fullName += addName;
                     fullName += std::to_string(routingMetric);
                     addName = "-";
@@ -1518,13 +1526,14 @@ void LoRaNodeApp::generateDataPackets() {
 void LoRaNodeApp::generateDataPackets2() {
 
     if (nodeId == 0) {
-        int destination = 3;
+        int destination = 6;
 
-        for (int k = 0; k < numberOfPacketsPerDestination; k++) {
+//        for (int k = 0; k < numberOfPacketsPerDestination; k++) {
                 auto dataPacket = makeShared<LoRaAppPacket>();
 
                 dataPacket->setMsgType(DATA);
-                dataPacket->setDataInt(currDataInt+k);
+//                dataPacket->setDataInt(currDataInt+k);
+                dataPacket->setDataInt(currDataInt);
                 dataPacket->setSource(nodeId);
                 dataPacket->setVia(nodeId);
                 dataPacket->setDestination(destination);
@@ -1545,7 +1554,7 @@ void LoRaNodeApp::generateDataPackets2() {
                 LoRaPacketsToSend.push_back(*dataPacket);
             }
             currDataInt++;
-        }
+//        }
 }
 
 void LoRaNodeApp::increaseSFIfPossible() {
