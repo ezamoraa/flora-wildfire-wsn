@@ -1517,7 +1517,7 @@ void LoRaNodeApp::generateDataPackets() {
 void LoRaNodeApp::generateDataPackets2() {
 
     if (nodeId == 0) {
-        int destination = 2;
+        int destination = 24;
 
         for (int k = 0; k < numberOfPacketsPerDestination; k++) {
                 auto dataPacket = makeShared<LoRaAppPacket>();
