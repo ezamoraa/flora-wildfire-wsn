@@ -15,6 +15,7 @@
 
 #ifndef LORAAPP_SENSOR_HUMIDITYSENSORNODE_H_
 #define LORAAPP_SENSOR_HUMIDITYSENSORNODE_H_
+#include "SensorNode.h"
 
 namespace flora {
 

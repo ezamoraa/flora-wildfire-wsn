@@ -17,7 +17,7 @@
 
 namespace flora {
 
-Define_Module(HumiditySensorNode);
+//Define_Module(HumiditySensorNode);
 
 HumiditySensorNode::HumiditySensorNode() {
     // TODO Auto-generated constructor stub

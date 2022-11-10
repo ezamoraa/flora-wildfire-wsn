@@ -17,7 +17,11 @@
 
 namespace flora {
 
-Define_Module(TempSensorNode);
+//Define_Module(TempSensorNode);
+//virtual void initialize(int stage) override;
+TempSensorNode:: initialize(){
+    sendData();
+}
 
 TempSensorNode::TempSensorNode() {
     // TODO Auto-generated constructor stub
@@ -60,6 +64,14 @@ double TempSensorNode :: forceFire(){
         lastData = uniform(100,120);
     }
     return lastData;
+}
+
+double TempSensorNode :: sendData(){
+    while(true){
+        double temp = getData();
+        cMessage *msg = new cMessage(temp);
+        send(msg,"tsout");
+    }
 }
 
 //void TempSensorNode :: initialize(){

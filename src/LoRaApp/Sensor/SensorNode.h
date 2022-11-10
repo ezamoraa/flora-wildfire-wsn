@@ -23,11 +23,7 @@ namespace flora {
 class SensorNode : public cSimpleModule {
 protected:
 
-    enum sensorType{
-        TEMP = 1,
-        HUMI,
-        SMOKE
-    };
+
 
     double lastData;
     int type;
@@ -35,7 +31,10 @@ protected:
 
 public:
 
-
+    enum sensorType{
+        TEMP = 1,
+        HUMI
+    };
 
 //    functions dont need to override
     void setLastData(double data);
@@ -49,6 +48,7 @@ public:
 //virtual functions
     virtual double getData() = 0;
     virtual double forceFire() = 0;
+
 
 };
 

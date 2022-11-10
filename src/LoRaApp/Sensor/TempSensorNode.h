@@ -21,6 +21,7 @@ namespace flora {
 
 class TempSensorNode : public SensorNode  {
 public:
+    virtual void initialize(int stage) override;
     TempSensorNode();
     TempSensorNode(double inidata);
     virtual ~TempSensorNode();
