@@ -16,6 +16,8 @@
 #include "LoRaEnergyConsumer.h"
 
 #include "inet/physicallayer/wireless/common/contract/packetlevel/IRadio.h"
+#include "inet/physicallayer/wireless/common/contract/packetlevel/ILoRaNodeApp.h"
+
 #include "LoRaPhy/LoRaTransmitter.h"
 namespace flora {
 
@@ -29,6 +31,7 @@ void LoRaEnergyConsumer::initialize(int stage)
     if (stage == INITSTAGE_LOCAL) {
         if (!readConfigurationFile())
             throw cRuntimeError("LoRaEnergyConsumer: error in reading the input configuration file");
+
         standbySupplyCurrent = 0;
         sleepSupplyCurrent = 0;
         sleepPowerConsumption = mW(supplyVoltage*sleepSupplyCurrent);
@@ -40,6 +43,11 @@ void LoRaEnergyConsumer::initialize(int stage)
 
         offPowerConsumption = W(par("offPowerConsumption"));
         switchingPowerConsumption = W(par("switchingPowerConsumption"));
+
+        sleepAppPowerConsumption = W(par("sleepAppPowerConsumption"));
+        runAppPowerConsumption = W(par("runAppPowerConsumption"));
+        switchingAppPowerConsumption = W(par("switchingAppPowerConsumption"));
+
 
         //Setting to zero, values are passed to energystorage based on tx power of current packet in getPowerConsumption()
         transmitterTransmittingPowerConsumption = W(0);
@@ -56,6 +64,11 @@ void LoRaEnergyConsumer::initialize(int stage)
         //radioModule->subscribe(EpEnergyStorageBase::residualEnergyCapacityChangedSignal, this);
         //radioModule->subscribe(IdealEpEnergyStorage::residualEnergyCapacityChangedSignal, this);
         radio = check_and_cast<IRadio *>(radioModule);
+
+        cModule *appModule = getParentModule();
+        appModule->subscribe(ILoRaNodeApp::appModeChangedSignal, this);
+        app = check_and_cast<ILoRaNodeApp *>(appModule);
+
 
         energySource.reference(this, "energySourceModule", true);
 
@@ -156,8 +169,23 @@ void LoRaEnergyConsumer::receiveSignal(cComponent *source, simsignal_t signal, i
             lastPowerConsumption = powerConsumption;
         //}
     }
+    if (signal == ILoRaNodeApp::appModeChangedSignal)
+       {
+           powerConsumption = getPowerConsumption();
+           emit(powerConsumptionChangedSignal, powerConsumption.get());
+
+           simtime_t currentSimulationTime = simTime();
+           //if (currentSimulationTime != lastEnergyBalanceUpdate) {
+               energyBalance += s((currentSimulationTime - lastEnergyBalanceUpdate).dbl()) * (lastPowerConsumption);
+               totalEnergyConsumed = (energyBalance.get());
+               lastEnergyBalanceUpdate = currentSimulationTime;
+               lastPowerConsumption = powerConsumption;
+           //}
+       }
     else
         throw cRuntimeError("Unknown signal");
+
+
 }
 
 W LoRaEnergyConsumer::getPowerConsumption() const
@@ -168,6 +196,14 @@ W LoRaEnergyConsumer::getPowerConsumption() const
         return offPowerConsumption;
     if (radioMode == IRadio::RADIO_MODE_SLEEP || radioMode == IRadio::RADIO_MODE_SWITCHING)
         return W(0);
+
+    ILoRaNodeApp::AppMode appMode = app->getAppMode();
+      if (appMode == ILoRaNodeApp::APP_MODE_SLEEP)
+        return sleepAppPowerConsumption;
+      else if (appMode == ILoRaNodeApp::APP_MODE_RUN)
+        return runAppPowerConsumption;
+      else if (appMode == ILoRaNodeApp::APP_MODE_SWITCHING)
+        return switchingAppPowerConsumption;
 
     W powerConsumption = W(0);
     IRadio::ReceptionState receptionState = radio->getReceptionState();
@@ -222,4 +258,36 @@ W LoRaEnergyConsumer::getPowerConsumption() const
 //    }
     return powerConsumption;
 }
+/*
+W LoRaEnergyConsumer::getAppPowerConsumption() const
+{
+    ILoRaNodeApp::AppMode appMode = app->getAppMode();
+    if (appMode == ILoRaNodeApp::APP_MODE_SLEEP)
+      return sleepAppPowerConsumption;
+    else if (appMode == ILoRaNodeApp::APP_MODE_RUN)
+      return runAppPowerConsumption;
+    else if (appMode == ILoRaNodeApp::APP_MODE_SWITCHING)
+      return switchingAppPowerConsumption;
+
+    W powerConsumption = W(0);
+
+    return powerConsumption;
+}
+*/
+
+/*W LoRaEnergyConsumer::getNodePowerConsumption() const
+{
+    powerConsumption = getRadioPowerConsumption() + getAppPowerConsumption();
+    emit(powerConsumptionChangedSignal, powerConsumption.get());
+
+               simtime_t currentSimulationTime = simTime();
+               //if (currentSimulationTime != lastEnergyBalanceUpdate) {
+                   energyBalance += s((currentSimulationTime - lastEnergyBalanceUpdate).dbl()) * (lastPowerConsumption);
+                   totalEnergyConsumed = (energyBalance.get());
+                   lastEnergyBalanceUpdate = currentSimulationTime;
+                   lastPowerConsumption = powerConsumption;
+               //}
+
+    return powerConsumption;
+}*/
 }

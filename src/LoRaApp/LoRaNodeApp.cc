@@ -40,17 +40,30 @@ namespace flora {
 
 Define_Module(LoRaNodeApp);
 
+simsignal_t LoRaNodeApp::appModeChangedSignal = cComponent::registerSignal("appModeChanged");
+cEnum *LoRaNodeApp::appModeEnum = nullptr;
+
+Register_Enum(LoRaNodeApp::AppMode,
+    (LoRaNodeApp::APP_MODE_SLEEP,
+     LoRaNodeApp::APP_MODE_RUN,
+     LoRaNodeApp::APP_MODE_SWITCHING));
+
 void LoRaNodeApp::initialize(int stage) {
     cSimpleModule::initialize(stage);
 
     //Current network settings
     numberOfNodes = par("numberOfNodes");
 
+
+
     if (stage == INITSTAGE_LOCAL) {
         // Get this node's ID
         nodeId = getContainingNode(this)->getIndex();
         std::pair<double, double> coordsValues = std::make_pair(-1, -1);
         cModule *host = getContainingNode(this);
+
+        switchTimer = new cMessage("switchTimer");
+        WATCH(appMode);
 
         // Generate random location for nodes if circle deployment type
         if (strcmp(host->par("deploymentType").stringValue(), "circle") == 0) {
@@ -106,6 +119,12 @@ void LoRaNodeApp::initialize(int stage) {
         {
             throw cRuntimeError("This module doesn't support starting in node DOWN state");
         }
+
+
+
+        initializeAppMode();
+        parseAppModeSwitchingTimes();
+
 
         // Initialize counters
         sentPackets = 0;
@@ -403,6 +422,86 @@ std::pair<double, double> LoRaNodeApp::generateUniformCircleCoordinates(
     return coordValues;
 }
 
+void LoRaNodeApp::initializeAppMode() {
+    const char *initialAppMode = par("initialAppMode");
+    if (!strcmp(initialAppMode, "sleep"))
+        completeAppModeSwitch(LoRaNodeApp::APP_MODE_SLEEP);
+    else if (!strcmp(initialAppMode, "run"))
+        completeAppModeSwitch(LoRaNodeApp::APP_MODE_RUN);
+    else
+        throw cRuntimeError("Unknown initialAppMode");
+}
+
+void LoRaNodeApp::setAppMode(AppMode newAppMode)
+{
+    Enter_Method("setAppMode");
+    if (newAppMode < APP_MODE_SLEEP || newAppMode > APP_MODE_SWITCHING)
+        throw cRuntimeError("Unknown app mode: %d", newAppMode);
+    else if (newAppMode == APP_MODE_SWITCHING)
+        throw cRuntimeError("Cannot switch manually to APP_MODE_SWITCHING");
+    else if (appMode == APP_MODE_SWITCHING || switchTimer->isScheduled())
+        throw cRuntimeError("Cannot switch to a new APP mode while another switch is in progress");
+    else if (newAppMode != appMode && newAppMode != nextAppMode) {
+        simtime_t switchingTime = switchingTimes[appMode][newAppMode];
+        if (switchingTime != 0)
+            startAppModeSwitch(newAppMode, switchingTime);
+        else
+            completeAppModeSwitch(newAppMode);
+    }
+}
+
+void LoRaNodeApp::parseAppModeSwitchingTimes()
+{
+    const char *times = par("switchingTimes");
+
+    char prefix[3];
+    unsigned int count = sscanf(times, "%s", prefix);
+
+    if (count > 2)
+        throw cRuntimeError("Metric prefix should be no more than two characters long");
+
+    double metric = 1;
+
+    if (strcmp("s", prefix) == 0)
+        metric = 1;
+    else if (strcmp("ms", prefix) == 0)
+        metric = 0.001;
+    else if (strcmp("ns", prefix) == 0)
+        metric = 0.000000001;
+    else
+        throw cRuntimeError("Undefined or missed metric prefix for switchingTimes parameter");
+
+    cStringTokenizer tok(times + count + 1);
+    unsigned int idx = 0;
+    while (tok.hasMoreTokens()) {
+        switchingTimes[idx / APP_MODE_SWITCHING][idx % APP_MODE_SWITCHING] = atof(tok.nextToken()) * metric;
+        idx++;
+    }
+    if (idx != APP_MODE_SWITCHING * APP_MODE_SWITCHING)
+        throw cRuntimeError("Check your switchingTimes parameter! Some parameters may be missed");
+}
+
+void LoRaNodeApp::startAppModeSwitch(AppMode newAppMode, simtime_t switchingTime)
+{
+    //EV_DETAIL << "Starting to change App mode from \x1b[1m" << getAppModeName(AppMode) << "\x1b[0m to \x1b[1m" << getAppModeName(newAppMode) << "\x1b[0m." << endl;
+    previousAppMode = appMode;
+             appMode = APP_MODE_SWITCHING;
+             nextAppMode = newAppMode;
+             emit(appModeChangedSignal, appMode);
+             scheduleAfter(switchingTime, switchTimer);
+}
+
+void LoRaNodeApp::completeAppModeSwitch(AppMode newAppMode)
+{
+    // EV_INFO << "App mode changed from \x1b[1m" << getAppModeName(previousAppMode) << "\x1b[0m to \x1b[1m" << getAppModeName(newAppMode) << "\x1b[0m." << endl;
+     // if (!isReceiverMode(newAppMode) && receptionTimer != nullptr)
+         // abortReception(receptionTimer);
+      //if (!isTransmitterMode(newAppMode) && transmissionTimer->isScheduled())
+      //    abortTransmission();
+    appMode = previousAppMode = nextAppMode = newAppMode;
+    emit(appModeChangedSignal, newAppMode);
+}
+
 void LoRaNodeApp::finish() {
     cModule *host = getContainingNode(this);
     StationaryMobility *mobility = check_and_cast<StationaryMobility *>(
@@ -539,6 +638,7 @@ void LoRaNodeApp::handleSelfMessage(cMessage *msg) {
 
     // Only proceed to send a data packet if the 'mac' module in 'LoRaNic' is IDLE and the warmup period is due
     LoRaMac *lrmc = (LoRaMac *)getParentModule()->getSubmodule("LoRaNic")->getSubmodule("mac");
+
     if (lrmc->fsm.getState() == IDLE ) {
 
         simtime_t txDuration = 0;
@@ -1957,6 +2057,13 @@ void LoRaNodeApp::setCR(int CR) {
 
 int LoRaNodeApp::getCR() {
     return loRaRadio->loRaCR;
+}
+
+const char *LoRaNodeApp::getAppModeName(AppMode appMode)
+{
+    if (!appModeEnum)
+        appModeEnum = cEnum::get(opp_typename(typeid(LoRaNodeApp::AppMode)));
+    return appModeEnum->getStringFor(appMode) + 11;
 }
 
 void LoRaNodeApp::setLoRaTagToPkt(Packet *packet, int customSF) {

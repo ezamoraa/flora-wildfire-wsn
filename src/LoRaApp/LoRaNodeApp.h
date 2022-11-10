@@ -39,8 +39,11 @@ namespace flora {
  */
 class LoRaNodeApp : public cSimpleModule, public ILifecycle
 {
+
     protected:
         virtual void initialize(int stage) override;
+        virtual void initializeAppMode();
+
         void finish() override;
         virtual int numInitStages() const override { return NUM_INIT_STAGES; }
         virtual void handleMessage(cMessage *msg) override;
@@ -297,10 +300,48 @@ class LoRaNodeApp : public cSimpleModule, public ILifecycle
         units::values::Hz getBW();
 
         void setLoRaTagToPkt(Packet *packet, int customSF=-1);
+        //static int nextid = 0;
+
+
+
+    public:
+        enum AppMode {
+            APP_MODE_SLEEP,
+            APP_MODE_RUN,
+            APP_MODE_SWITCHING // this radio mode must be the very last
+        };
+
+    protected:
+        static cEnum *appModeEnum;
+
+        //const int id = nextId++;
+        simtime_t switchingTimes[APP_MODE_SWITCHING][APP_MODE_SWITCHING];
+        AppMode appMode = APP_MODE_SLEEP;
+        AppMode nextAppMode = APP_MODE_RUN;
+        AppMode previousAppMode = APP_MODE_SLEEP;
+        cMessage *switchTimer = nullptr;
+
+    private:
+        void parseAppModeSwitchingTimes();
+        void startAppModeSwitch(AppMode newAppMode, simtime_t switchingTime);
+        void completeAppModeSwitch(AppMode newAppMode);
+
 
     public:
         LoRaNodeApp() {}
         simsignal_t LoRa_AppPacketSent;
+
+        static simsignal_t appModeChangedSignal;
+
+        //virtual AppMode getAppMode() const = 0;
+        //virtual int getId() const = 0;
+        virtual AppMode getAppMode() const  { return appMode; }
+       // virtual int getId() const { return id; }
+        virtual void setAppMode(AppMode newAppMode);
+        static const char *getAppModeName(AppMode appMode);
+
+
+
 };
 
 }
