@@ -64,6 +64,7 @@ class LoRaNodeApp : public cSimpleModule, public ILifecycle
         void handlePacketTxSelfMessage(cMessage *msg);
         void handleTaskTimerSelfMessage(cMessage *msg);
         void handleSelfMessage(cMessage *msg);
+        void createFirePacket();
 
         simtime_t getTimeToNextRoutingPacket();
 
@@ -133,6 +134,7 @@ class LoRaNodeApp : public cSimpleModule, public ILifecycle
         // MBSE Sensor attributes
         double iniTemp;
         double averageTemp;
+        double currentTemp;
         TempSensorNode *ts;
         HumiditySensorNode *hs;
         double threshold;
