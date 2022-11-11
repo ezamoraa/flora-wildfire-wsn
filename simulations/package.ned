@@ -61,11 +61,11 @@ network LoRaMotoNetworkTest
 {
     parameters:
         int numberOfNodes = default(1);
-        int numberOfGateways = default(1);
-        int networkSizeX = default(1400);
-        int networkSizeY = default(2500);
+        int numberOfGateways = default(0);
+        int networkSizeX = default(2300);
+        int networkSizeY = default(3300);
         //@display("bgb=1400,2500;bgi=background/coquimbo-02;bgl=2");
-        @display("bgb=2500,2500;bgl=2");
+        @display("bgb=2300,3300;bgl=2");
     submodules:
         N[numberOfNodes]: LoRaNode {
             @display("p=801.28,115.184006;is=n");
@@ -94,10 +94,10 @@ network LoRaMesh
     parameters:
         int numberOfNodes = default(1);
         int numberOfGateways = default(1);
-        int networkSizeX = default(3000);
-        int networkSizeY = default(2500);
+        int networkSizeX = default(2869);
+        int networkSizeY = default(3269);
 //        @display("bgb=1400,2500;bgi=background/coquimbo-02;bgl=2");
-        @display("bgb=3000,2500;bgl=2");
+        @display("bgb=2869,3269;bgl=2");
     submodules:
         loRaNodes[numberOfNodes]: LoRaNode {
             @display("p=831.328,580.92804;is=n");

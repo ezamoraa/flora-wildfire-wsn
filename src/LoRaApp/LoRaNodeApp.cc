@@ -212,6 +212,7 @@ void LoRaNodeApp::initialize(int stage) {
 
         windowSize = std::min(32,(int)math::maxnan(1.0,(double)par("windowSize").intValue())); //Must be an int between 1 and 32
 
+
         if ( packetTTL == 0 ) {
             if (strcmp(getContainingNode(this)->par("deploymentType").stringValue(), "grid") == 0) {
                 packetTTL = 2*(sqrt(numberOfNodes)-1);
@@ -1027,16 +1028,16 @@ void LoRaNodeApp::manageReceivedDataPacketToForward(cMessage *msg) {
             default:
                 // Check if the packet has already been forwarded
                 if (isPacketForwarded(*packet)) {
-                    bubble("This packet has already been forwarded!");
+                    EV << "This packet has already been forwarded!" << endl;;
                     forwardPacketsDuplicateAvoid++;
                 }
                 // Check if the packet is buffered to be forwarded
                 else if (isPacketToBeForwarded(*packet)) {
-                    bubble("This packet is already scheduled to be forwarded!");
+                    EV << "This packet is already scheduled to be forwarded!" << endl;
                     forwardPacketsDuplicateAvoid++;
                 // A previously-unknown packet has arrived
                 } else {
-                    bubble("Saving packet to forward it later!");
+                    EV << "Saving packet to forward it later!" << endl;
                     receivedDataPacketsToForwardUnique++;
 
                     dataPacket->setTtl(packet->getTtl() - 1);
@@ -1129,9 +1130,9 @@ simtime_t LoRaNodeApp::sendDataPacket() {
         bubble("Sending a local data packet!");
 
         // Name packets to ease tracking
-        const char* addName = "Orig";
-        fullName += addName;
-        fullName += std::to_string(nodeId);
+//        const char* addName = "Orig";
+//        fullName += addName;
+//        fullName += std::to_string(nodeId);
 
         // Get the data from the first packet in the data buffer to send it
         dataPacket->setMsgType(LoRaPacketsToSend.front().getMsgType());
@@ -1146,7 +1147,7 @@ simtime_t LoRaNodeApp::sendDataPacket() {
         dataPacket->setChunkLength(B(LoRaPacketsToSend.front().getChunkLength()));
         dataPacket->setDepartureTime(simTime());
 
-        addName = "Dest";
+        std::string addName = "SENDING DATA TO";
         fullName += addName;
         fullName += std::to_string(dataPacket->getDestination());
 
@@ -1166,15 +1167,15 @@ simtime_t LoRaNodeApp::sendDataPacket() {
         bubble("Forwarding a packet!");
         localData = false;
 
-        std::string addName = "Node ";
+//        std::string addName = "Node ";
+//        fullName += addName;
+//        fullName += std::to_string(nodeId);
+        std::string addName = "FORWARDING TO ";
         fullName += addName;
-        fullName += std::to_string(nodeId);
-        addName = " fwd from ";
-        fullName += addName;
-        addName = std::to_string(LoRaPacketsToForward.front().getSource());
-        fullName += addName;
-        addName = " to ";
-        fullName += addName;
+//        addName = std::to_string(LoRaPacketsToForward.front().getSource());
+//        fullName += addName;
+//        addName = " to ";
+//        fullName += addName;
         addName = std::to_string(LoRaPacketsToForward.front().getDestination());
         fullName += addName;
 
@@ -1199,11 +1200,11 @@ simtime_t LoRaNodeApp::sendDataPacket() {
             default:
                 // TODO: Investigate while loop but single transmit
                 while (LoRaPacketsToForward.size() > 0) {
-                    addName = " with routing metric : ";
-                    fullName += addName;
-                    fullName += std::to_string(routingMetric);
-                    addName = "-";
-                    fullName += addName;
+//                    addName = " with routing metric : ";
+//                    fullName += addName;
+//                    fullName += std::to_string(routingMetric);
+//                    addName = "-";
+//                    fullName += addName;
 
                     // Get the data from the first packet in the forwarding buffer to send it
                     dataPacket->setMsgType(LoRaPacketsToForward.front().getMsgType());
@@ -1243,8 +1244,8 @@ simtime_t LoRaNodeApp::sendDataPacket() {
     if (transmit) {
         sentPackets++;
 
-        const char* ownName = "Tx";
-        fullName += ownName;
+//        const char* ownName = "Tx";
+//        fullName += ownName;
 
         sanitizeRoutingTable();
 
@@ -1526,7 +1527,7 @@ void LoRaNodeApp::generateDataPackets() {
 void LoRaNodeApp::generateDataPackets2() {
 
     if (nodeId == 0) {
-        int destination = 6;
+        int destination = 18;
 
 //        for (int k = 0; k < numberOfPacketsPerDestination; k++) {
                 auto dataPacket = makeShared<LoRaAppPacket>();
