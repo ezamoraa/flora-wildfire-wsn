@@ -29,6 +29,9 @@
 #include "LoRa/LoRaMacControlInfo_m.h"
 #include "LoRa/LoRaRadio.h"
 
+#include "Sensor/TempSensorNode.h"
+#include "Sensor/HumiditySensorNode.h"
+
 using namespace omnetpp;
 using namespace inet;
 
@@ -126,6 +129,13 @@ class LoRaNodeApp : public cSimpleModule, public ILifecycle
         int lastSentMeasurement;
         int deletedRoutes;
         int forwardBufferFull;
+
+        // MBSE Sensor attributes
+        double iniTemp;
+        double averageTemp;
+        TempSensorNode *ts;
+        HumiditySensorNode *hs;
+        double threshold;
 
         simtime_t timeToFirstRoutingPacket;
         std::string timeToNextRoutingPacketDist;

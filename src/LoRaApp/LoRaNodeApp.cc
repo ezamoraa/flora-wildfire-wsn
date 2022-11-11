@@ -19,6 +19,9 @@
 #include "../LoRa/LoRaTagInfo_m.h"
 #include "inet/mobility/static/StationaryMobility.h"
 #include <cmath>
+#include <iostream>
+#include <stdlib.h>
+#include <time.h>
 
 namespace flora {
 
@@ -147,6 +150,13 @@ void LoRaNodeApp::initialize(int stage) {
         lastDataPacketTransmissionTime = 0;
         firstDataPacketReceptionTime = 0;
         lastDataPacketReceptionTime = 0;
+
+        // MBSE Sensor init
+        iniTemp = 20.0;
+        averageTemp = iniTemp;
+        ts = new TempSensorNode(iniTemp);
+        hs = new HumiditySensorNode();
+        threshold = 20.0;
 
         dataPacketsDue = false;
         routingPacketsDue = false;
@@ -609,9 +619,27 @@ void LoRaNodeApp::handlePacketTxSelfMessage(cMessage *msg) {
 }
 
 void LoRaNodeApp::handleTaskTimerSelfMessage(cMessage *msg) {
-    // EV_INFO << "Periodic task timer!" << endl;
     // TODO: Add fire detection task code
+    EV << "Test5" << endl;
     scheduleAt(simTime() + timeToNextTaskTimerTick, selfTaskTimerMsg);
+
+//    std::cout<< i <<std::endl;
+    double currentTemp = ts->getData();
+    if (nodeId == 1 and rand() % 1000 / 1000.0 > 0.005) {
+        currentTemp = ts->forceFire();
+    }
+    double currentRH = hs->getData();
+
+
+//    EV << currentTemp << endl;
+
+    if (currentTemp - averageTemp > threshold) {
+        EV << "Test5!" << endl;
+        simtime_t nextScheduleTime = math::maxnan(simTime().dbl(), minNextPacketTransmissionTime.dbl()) + 10*simTimeResolution;
+        rescheduleAt(nextScheduleTime, selfPacketTxMsg);
+    }
+
+    averageTemp = 0.75*averageTemp + 0.25*currentTemp;
 }
 
 void LoRaNodeApp::handleSelfMessage(cMessage *msg) {
