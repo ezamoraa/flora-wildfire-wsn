@@ -60,8 +60,11 @@ void LoRaNodeApp::initialize(int stage) {
         std::pair<double, double> coordsValues = std::make_pair(-1, -1);
         cModule *host = getContainingNode(this);
 
+
+        if (strcmp(host->par("deploymentType").stringValue(), "manual") == 0) {}
+
         // Generate random location for nodes if circle deployment type
-        if (strcmp(host->par("deploymentType").stringValue(), "circle") == 0) {
+        else if (strcmp(host->par("deploymentType").stringValue(), "circle") == 0) {
             coordsValues = generateUniformCircleCoordinates(
                     host->par("maxGatewayDistance").doubleValue(),
                     host->par("gatewayX").doubleValue(),
@@ -344,8 +347,10 @@ void LoRaNodeApp::initialize(int stage) {
             numberOfDestinationsPerNode = numberOfNodes-1;
         }
 
-        selfPacketTxMsg = new cMessage("selfPacketTxMsg");
-        selfTaskTimerMsg = new cMessage("selfTaskTimerMsg");
+        generateDataPackets2();
+
+
+
         selfAppModeSwitchTimerMsg = new cMessage("selfAppModeSwitchTimerMsg");
 
         // Routing packets timer
@@ -364,7 +369,10 @@ void LoRaNodeApp::initialize(int stage) {
                 break;
         }
 
+
+
         if (routingPacketsDue) {
+            selfPacketTxMsg = new cMessage("selfPacketTxMsg");
             scheduleAt(simTime() + timeToFirstRoutingPacket, selfPacketTxMsg);
             EV << "Self Packet Tx Msg triggered by due routing packet" << endl;
         }
@@ -372,6 +380,7 @@ void LoRaNodeApp::initialize(int stage) {
         // Task timer
         timeToFirstTaskTimerTick = math::maxnan(5.0, (double)par("timeToFirstTaskTimerTick"));
         timeToNextTaskTimerTick = par("timeToNextTaskTimerTick");
+        selfTaskTimerMsg = new cMessage("selfTaskTimerMsg");
         scheduleAt(simTime() + timeToFirstTaskTimerTick, selfTaskTimerMsg);
     }
 }
@@ -439,7 +448,7 @@ void LoRaNodeApp::setAppMode(AppMode newAppMode)
         throw cRuntimeError("Unknown app mode: %d", newAppMode);
     else if (newAppMode == APP_MODE_SWITCHING)
         throw cRuntimeError("Cannot switch manually to APP_MODE_SWITCHING");
-    else if (appMode == APP_MODE_SWITCHING || selfAppModeSwitchTimerMsg->isScheduled())
+    else if (newAppMode == APP_MODE_SWITCHING || selfAppModeSwitchTimerMsg->isScheduled())
         throw cRuntimeError("Cannot switch to a new APP mode while another switch is in progress");
     else if (newAppMode != appMode && newAppMode != nextAppMode) {
         simtime_t switchingTime = switchingTimes[appMode][newAppMode];
@@ -595,6 +604,28 @@ void LoRaNodeApp::finish() {
     cleanTeardown();
 }
 
+void LoRaNodeApp::handleMessage(cMessage *msg) {
+
+    if (msg->isSelfMessage()) {
+        handleSelfMessage(msg);
+    } else {
+        handleMessageFromLowerLayer(msg);
+    }
+}
+
+void LoRaNodeApp::handleSelfMessage(cMessage *msg) {
+
+    if (msg == selfPacketTxMsg) {
+        handlePacketTxSelfMessage(msg);
+    } else if (msg == selfTaskTimerMsg) {
+        handleTaskTimerSelfMessage(msg);
+    } else if (msg == selfAppModeSwitchTimerMsg) {
+        handleAppModeSwitchTimerSelfMessage(msg);
+    } else {
+        throw cRuntimeError("Unknown self message");
+    }
+}
+
 void LoRaNodeApp::handlePacketTxSelfMessage(cMessage *msg) {
     // Only proceed to send a data packet if the 'mac' module in 'LoRaNic' is IDLE and the warmup period is due
     LoRaMac *lrmc = (LoRaMac *)getParentModule()->getSubmodule("LoRaNic")->getSubmodule("mac");
@@ -667,27 +698,27 @@ void LoRaNodeApp::handlePacketTxSelfMessage(cMessage *msg) {
             scheduleAt(nextScheduleTime + 10*simTimeResolution, selfPacketTxMsg);
         }
 
-//        if (!sendPacketsContinuously && routingPacketsDue) {
-//
-//            bool allNodesDone = true;
-//
-//            for (int i=0; i<numberOfNodes; i++) {
-//                LoRaNodeApp *lrndpp = (LoRaNodeApp *) getParentModule()->getParentModule()->getSubmodule("loRaNodes", i)->getSubmodule("app",0);
-//                if ( !(lrndpp->lastDataPacketTransmissionTime > 0 && \
-//                     // ToDo: maybe too restrictive? If no packets were received at all
-//                     // simulation laster until the very end
-//                     //lrndpp->lastDataPacketReceptionTime > 0 &&
-//                     lrndpp->lastDataPacketTransmissionTime + stopRoutingAfterDataDone < simTime() && \
-//                     lrndpp->lastDataPacketReceptionTime + stopRoutingAfterDataDone < simTime() )) {
-//                    allNodesDone = false;
-//                    break;
-//                }
-//
-//                if (allNodesDone) {
-//                    routingPacketsDue = false;
-//                }
-//            }
-//        }
+        if (!sendPacketsContinuously && routingPacketsDue) {
+
+            bool allNodesDone = true;
+
+            for (int i=0; i<numberOfNodes; i++) {
+                LoRaNodeApp *lrndpp = (LoRaNodeApp *) getParentModule()->getParentModule()->getSubmodule("loRaNodes", i)->getSubmodule("app",0);
+                if ( !(lrndpp->lastDataPacketTransmissionTime > 0 && \
+                     // ToDo: maybe too restrictive? If no packets were received at all
+                     // simulation laster until the very end
+                     //lrndpp->lastDataPacketReceptionTime > 0 &&
+                     lrndpp->lastDataPacketTransmissionTime + stopRoutingAfterDataDone < simTime() && \
+                     lrndpp->lastDataPacketReceptionTime + stopRoutingAfterDataDone < simTime() )) {
+                    allNodesDone = false;
+                    break;
+                }
+
+                if (allNodesDone) {
+                    routingPacketsDue = false;
+                }
+            }
+        }
     }
     else {
         scheduleAt(simTime() + 10*simTimeResolution, selfPacketTxMsg);
@@ -696,6 +727,7 @@ void LoRaNodeApp::handlePacketTxSelfMessage(cMessage *msg) {
 
 void LoRaNodeApp::handleTaskTimerSelfMessage(cMessage *msg) {
     setAppMode(APP_MODE_RUN);
+
     // TODO: Add fire detection task code
     setAppMode(APP_MODE_SLEEP);
     scheduleAt(simTime() + timeToNextTaskTimerTick, selfTaskTimerMsg);
@@ -705,18 +737,10 @@ void LoRaNodeApp::handleAppModeSwitchTimerSelfMessage(cMessage *msg) {
     completeAppModeSwitch(nextAppMode);
 }
 
-void LoRaNodeApp::handleSelfMessage(cMessage *msg) {
 
-    if (msg == selfPacketTxMsg) {
-        handlePacketTxSelfMessage(msg);
-    } else if (msg == selfTaskTimerMsg) {
-        handleTaskTimerSelfMessage(msg);
-    } else if (msg == selfAppModeSwitchTimerMsg) {
-        handleAppModeSwitchTimerSelfMessage(msg);
-    } else {
-        throw cRuntimeError("Unknown self message");
-    }
-}
+
+
+
 
 void LoRaNodeApp::handleMessageFromLowerLayer(cMessage *msg) {
     receivedPackets++;
@@ -778,14 +802,7 @@ void LoRaNodeApp::handleMessageFromLowerLayer(cMessage *msg) {
     }
 }
 
-void LoRaNodeApp::handleMessage(cMessage *msg) {
 
-    if (msg->isSelfMessage()) {
-        handleSelfMessage(msg);
-    } else {
-        handleMessageFromLowerLayer(msg);
-    }
-}
 
 bool LoRaNodeApp::handleOperationStage(LifecycleOperation *operation,
         IDoneCallback *doneCallback) {
@@ -1266,8 +1283,8 @@ simtime_t LoRaNodeApp::sendDataPacket() {
         localData = false;
 
         const char* addName = "Fwd";
-        fullName += addName;
-        fullName += std::to_string(nodeId);
+//        fullName += addName;
+//        fullName += std::to_string(nodeId);
 
         switch (routingMetric) {
             case NO_FORWARDING:
@@ -1290,11 +1307,11 @@ simtime_t LoRaNodeApp::sendDataPacket() {
             default:
                 // TODO: Investigate while loop but single transmit
                 while (LoRaPacketsToForward.size() > 0) {
-                    addName = "FWD-";
-                    fullName += addName;
+//                    addName = "FORWARDING to";
+                    fullName += "FORWARDING to";
                     fullName += std::to_string(routingMetric);
-                    addName = "-";
-                    fullName += addName;
+//                    addName = "-";
+//                    fullName += addName;
 
                     // Get the data from the first packet in the forwarding buffer to send it
                     dataPacket->setMsgType(LoRaPacketsToForward.front().getMsgType());
@@ -1334,7 +1351,7 @@ simtime_t LoRaNodeApp::sendDataPacket() {
     if (transmit) {
         sentPackets++;
 
-        const char* ownName = "Tx";
+        const char* ownName = " In Transit";
         fullName += ownName;
 
         sanitizeRoutingTable();
@@ -1406,6 +1423,11 @@ simtime_t LoRaNodeApp::sendDataPacket() {
         txTpVector.record(getTP());
         emit(LoRa_AppPacketSent, getSF());
     }
+
+    // Generate more packets if needed
+       if (sendPacketsContinuously && LoRaPacketsToSend.size() == 0) {
+           generateDataPackets2();
+       }
 
     return txDuration;
 }
@@ -1609,38 +1631,38 @@ simtime_t LoRaNodeApp::sendRoutingPacket() {
 //    }
 //}
 //
-//void LoRaNodeApp::generateDataPackets2() {
-//
-//    if (nodeId == 0) {
-//        int destination = 2;
-//
+void LoRaNodeApp::generateDataPackets2() {
+
+    if (nodeId == 0) {
+        int destination = 18;
+
 //        for (int k = 0; k < numberOfPacketsPerDestination; k++) {
-//                auto dataPacket = makeShared<LoRaAppPacket>();
-//
-//                dataPacket->setMsgType(DATA);
-//                dataPacket->setDataInt(currDataInt+k);
-//                dataPacket->setSource(nodeId);
-//                dataPacket->setVia(nodeId);
-//                dataPacket->setDestination(destination);
-//                LoRaOptions opts = dataPacket->getOptions();
-//                opts.setAppACKReq(requestACKfromApp);
-//                dataPacket->setOptions(opts);
-//                dataPacket->setChunkLength(B(dataPacketSize));
-//                dataPacket->setDepartureTime(simTime());
-//
-//                switch (routingMetric) {
-//    //            case 0:
-//    //                dataPacket->setTtl(1);
-//    //                break;
-//                default:
-//                    dataPacket->setTtl(packetTTL);
-//                    break;
-//                }
-//                LoRaPacketsToSend.push_back(*dataPacket);
-//            }
-//            currDataInt++;
+                auto dataPacket = makeShared<LoRaAppPacket>();
+
+                dataPacket->setMsgType(DATA);
+                dataPacket->setDataInt(currDataInt);
+                dataPacket->setSource(nodeId);
+                dataPacket->setVia(nodeId);
+                dataPacket->setDestination(destination);
+                LoRaOptions opts = dataPacket->getOptions();
+                opts.setAppACKReq(requestACKfromApp);
+                dataPacket->setOptions(opts);
+                dataPacket->setChunkLength(B(dataPacketSize));
+                dataPacket->setDepartureTime(simTime());
+
+                switch (routingMetric) {
+    //            case 0:
+    //                dataPacket->setTtl(1);
+    //                break;
+                default:
+                    dataPacket->setTtl(packetTTL);
+                    break;
+                }
+                LoRaPacketsToSend.push_back(*dataPacket);
+            }
+            currDataInt++;
 //        }
-//}
+}
 
 void LoRaNodeApp::increaseSFIfPossible() {
     if (getSF() < 12) {

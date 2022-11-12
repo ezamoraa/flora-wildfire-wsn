@@ -107,28 +107,28 @@ network LoRaMesh
             @display("p=83.664,150.192;is=s");
         }
         LoRaMedium: LoRaMedium {
-            @display("p=200,200");
+            @display("p=-200,-200");
         }
         networkServer: StandardHost {
             parameters:
-                @display("p=850,-100");
+                @display("p=2100,-200");
         }
         visualizer: <default(firstAvailableOrEmpty("IntegratedCanvasVisualizer"))> like IIntegratedVisualizer if typename != "" {
-            @display("p=580,125");
+            @display("p=2500,-200");
         }
         configurator: Ipv4NetworkConfigurator {
             parameters:
                 assignDisjunctSubnetAddresses = false;
-                @display("p=1200,-100");
+                @display("p=2900,-200");
         }
         internetCloud: InternetCloud {
-            @display("p=300,-100");
+             @display("p=1300,-200");
         }
         gwRouter[numberOfGateways]: Router {
-            @display("p=50,-100");
+            @display("p=900,-200");
         }
         nsRouter: Router {
-            @display("p=550,-100");
+            @display("p=1700,-200");
         }
     connections:
         networkServer.ethg++ <--> Eth1G <--> nsRouter.ethg++;
