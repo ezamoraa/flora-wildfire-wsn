@@ -257,13 +257,20 @@ class LoRaNodeApp : public cSimpleModule, public ILifecycle
         int packetsToForwardMaxVectorSize;
 
         // Sensors and fire detection
-        double iniTemp, averageTemp;
+        double averageUpdateSensorWeight;
+
+        double averageTemp;
         TempSensorNode *tempSensor;
         double tempFireThreshold;
 
-        double iniHumidity, averageHumidity;
+        double averageHumidity;
         HumiditySensorNode *humiditySensor;
         double humidityFireThreshold;
+
+        simtime_t timeToForceFireStart;
+        bool forceFire;
+
+        int fireAlarmGatewayNodeId;
 
         // Routing tables
         class singleMetricRoute {

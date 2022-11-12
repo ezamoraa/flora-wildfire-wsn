@@ -159,15 +159,20 @@ void LoRaNodeApp::initialize(int stage) {
         firstDataPacketReceptionTime = 0;
         lastDataPacketReceptionTime = 0;
 
-        // TODO: Parametrize initial temperature, humidity, and thresholds
-        // TODO: Parametrize force fire logic: nodeId, time to start
-        averageTemp = iniTemp = 20.0;
-        tempSensor = new TempSensorNode(iniTemp);
-        tempFireThreshold = 20.0;
+        averageUpdateSensorWeight = par("averageUpdateSensorWeight");
 
-        averageHumidity = iniHumidity = 20.0;
-        humiditySensor = new HumiditySensorNode(iniHumidity);
-        humidityFireThreshold = 20.0;
+        averageTemp = par("iniTemperature");
+        tempFireThreshold = par("temperatureFireThreshold");
+        tempSensor = new TempSensorNode(averageTemp);
+
+        averageHumidity = par("iniHumidity");
+        humidityFireThreshold = par("humidityFireThreshold");
+        humiditySensor = new HumiditySensorNode(averageHumidity);
+
+        timeToForceFireStart = simTime() + par("timeToForceFireStart");
+        forceFire = par("forceFire");
+
+        fireAlarmGatewayNodeId = par("fireAlarmGatewayNodeId");
 
         dataPacketsDue = false;
         routingPacketsDue = false;
@@ -502,8 +507,6 @@ void LoRaNodeApp::cleanTeardown()
         DataPacketsForMe.erase(lbptr);
     }
     cancelEvent(selfTaskTimerMsg);
-    delete tempSensor;
-    delete humiditySensor;
 }
 
 void LoRaNodeApp::finish() {
@@ -689,19 +692,25 @@ void LoRaNodeApp::handleTaskTimerSelfMessage(cMessage *msg) {
 
     double currentTemp = tempSensor->getData();
     double currentHumidity = humiditySensor->getData();
-    // TODO: Parametrize current weight
-    double cw = 0.25;
+    double ausw = averageUpdateSensorWeight;
 
-    // TODO: decide on criteria for starting a fire, either random chance or time
-    if ((nodeId == 1) && (rand() % 1000 / 1000.0 > 0.05)) {
+    // Check condition to force fire
+    if (forceFire && (simTime() > timeToForceFireStart)) {
+        EV_INFO << "Feuer frei!" << endl;
         currentTemp = tempSensor->forceFire();
         currentHumidity = tempSensor->forceFire();
+        forceFire = false;
     }
 
-    averageTemp = (1-cw) * averageTemp + cw * currentTemp;
-    averageHumidity = (1-cw) * averageHumidity + cw * currentHumidity;
+    averageTemp = ausw * currentTemp + (1-ausw) * averageTemp;
+    averageHumidity = ausw * currentHumidity + (1-ausw) * averageHumidity;
+
+    // EV_INFO << "Average temp: " << averageTemp << " / threshold: " << tempFireThreshold
+    //         << "Average humidity: " << averageHumidity << " / threshold: " << humidityFireThreshold
+    //         << endl;
 
     if (averageTemp > tempFireThreshold &&
+        // TODO: Humidity threshold should be lower than (also fix HumiditySensor fire condition)
         averageHumidity > humidityFireThreshold) {
         EV_INFO << "Triggering fire alarm!" << endl;
         generateFireAlarmPacket();
@@ -740,8 +749,7 @@ void LoRaNodeApp::generateFireAlarmPacket() {
     dataPacket->setSource(nodeId);
     dataPacket->setVia(nodeId);
 
-    // TODO: Parametrize with gateway ID
-    dataPacket->setDestination(0);
+    dataPacket->setDestination(fireAlarmGatewayNodeId);
     LoRaOptions opts = dataPacket->getOptions();
     opts.setAppACKReq(requestACKfromApp);
     dataPacket->setOptions(opts);
@@ -1244,7 +1252,11 @@ void LoRaNodeApp::manageReceivedAckPacketForMe(cMessage *msg) {
     auto pkt = check_and_cast<Packet *>(msg);
     const auto & packet = pkt->peekAtFront<LoRaAppPacket>();
 
-    // TODO: Log fire alarm is received (this should be the "next-to-gateway" node)
+    EV_INFO << "Fire alarm received from node: "
+            << packet->getSource()
+            << " temperature: "
+            << packet->getDataInt()
+            << endl;
 }
 
 simtime_t LoRaNodeApp::sendDataPacket() {
