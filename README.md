@@ -6,7 +6,7 @@ This project is a simulation of wireless sensor network with LoRa mesh communica
 ### Reqiurement and Download
 1. Download OMNet++ 6.0 source code from <https://omnetpp.org/download>, install it following the step described here <https://doc.omnetpp.org/omnetpp/InstallGuide.pdf>.
 2. Download this project code to your local disk.
-### Import Projet
+### Import Project
 3. Open OMNet++ IDE and select your workspace.  
 <img decoding="async" src="https://github.com/yaoyaomua/picture/blob/main/e0cbca78f9dc2301df9ea98e40247f7.png?raw=true" width="40%">
 4. Click **File** - **Import**.  
